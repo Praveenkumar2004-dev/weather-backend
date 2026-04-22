@@ -1,52 +1,49 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
 import requests
 import os
 from dotenv import load_dotenv
 
+# 🔐 Load environment variables
 load_dotenv()
 
-API_KEY = os.getenv("WEATHER_API_KEY")
-
+# 🚀 Create FastAPI app
 app = FastAPI()
 
-# CORS (allow frontend requests)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# 🔑 Get API key from .env or Render
+API_KEY = os.getenv("WEATHER_API_KEY")
 
-# ✅ Serve index.html
+
 @app.get("/")
 def home():
-    return FileResponse("index.html")
+    return {"message": "Weather API is running 🚀"}
 
 
-# ✅ Weather API
 @app.get("/weather/{city}")
 def get_weather(city: str):
 
-    url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}&units=metric"
+    # 🧠 Clean input
+    city = city.strip().title()
 
+    # 🌍 API request
+    url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}&units=metric"
     response = requests.get(url)
     data = response.json()
 
+    # ❌ Handle invalid city
     if response.status_code != 200 or "main" not in data:
         return {"error": "City not found"}
 
+    # ✅ Return clean data
     return {
-    "temperature": data["main"]["temp"],
-    "humidity": data["main"]["humidity"],
-    "wind_speed": data["wind"]["speed"],
-    "city": data["name"],
-    "timestamp": data["dt"],
-    "condition": data["weather"][0]["main"],
-    "description": data["weather"][0]["description"],
-    "feels_like": data["main"]["feels_like"],
-    "pressure": data["main"]["pressure"],
-    "timezone": data["timezone"]   # 🔥 ADD THIS LINE
-}
+        "city": data["name"],
+        "temperature": data["main"]["temp"],
+        "feels_like": data["main"]["feels_like"],
+        "humidity": data["main"]["humidity"],
+        "pressure": data["main"]["pressure"],
+        "wind_speed": data["wind"]["speed"],
+        "condition": data["weather"][0]["main"],
+        "description": data["weather"][0]["description"],
+        "timezone": data["timezone"],
+        "lat": data["coord"]["lat"],
+        "lon": data["coord"]["lon"]
+    }
