@@ -2,7 +2,7 @@ from fastapi import FastAPI
 import requests
 import os
 from dotenv import load_dotenv
-
+# updated version
 # 🔐 Load environment variables
 load_dotenv()
 # redeploy trigger
